@@ -1,5 +1,5 @@
 fastmcp==2.11.0
 pydantic==2.5.2
+pydantic-settings
 beam-client
 python-dotenv
-
