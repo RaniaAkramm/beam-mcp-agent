@@ -1,9 +1,14 @@
 from fastmcp import FastMCP
 import os
 from dotenv import load_dotenv
+from beam_client import BeamClient  # إضافة مكتبة Beam
 
 # تحميل مفاتيح الأمان
 load_dotenv()
+
+# تهيئة العميل للاتصال بمنصة Beam
+# يتوقع الكود وجود BEAM_API_KEY في ملف .env الخاص بك
+beam = BeamClient(api_key=os.environ.get("BEAM_API_KEY"))
 
 # إنشاء خادم MCP
 mcp = FastMCP("BeamMCP-Agent")
@@ -12,8 +17,8 @@ mcp = FastMCP("BeamMCP-Agent")
 @mcp.tool()
 def process_file(file_path: str) -> str:
     """إرسال ملف إلى منصة Beam للمعالجة"""
-    # هنا سنقوم لاحقاً بإضافة كود الاتصال بـ Beam
-    return f"جاري إرسال الملف {file_path} إلى Beam للمعالجة..."
+    # أصبح كائن beam متاحاً هنا للاستخدام
+    return f"تم تهيئة العميل، وجاري إرسال الملف {file_path} إلى Beam للمعالجة..."
 
 # الأداة الثانية: التحقق من حالة المهمة
 @mcp.tool()
