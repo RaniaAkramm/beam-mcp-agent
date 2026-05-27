@@ -1,442 +1,636 @@
-import { useState } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BeamMCP — The MCP Agent That Gets Things Done</title>
+<meta name="description" content="BeamMCP is a Model Context Protocol server that lets AI agents run Python tasks, process files, and execute workflows in the cloud — instantly.">
+<meta name="keywords" content="MCP server, Model Context Protocol, AI agent, Python cloud execution, MCP tools, BeamMCP">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #03060d;
+  --bg2: #070d1a;
+  --card: #0a1222;
+  --border: #112240;
+  --accent: #00ff88;
+  --accent2: #00c2ff;
+  --warn: #ff6b35;
+  --text: #ccd6f6;
+  --muted: #4a6280;
+  --white: #e8f0fe;
+}
 
-const sections = [
-  {
-    id: "scope",
-    num: "01",
-    title: "Project Scope",
-    titleAr: "نطاق المشروع",
-    icon: "◈",
-    content: [
-      {
-        type: "paragraph",
-        text: "Building an AI Agent system operating via MCP (Model Context Protocol). The system bridges the Claude Desktop user interface with the Beam.cloud serverless computing platform. The goal is to automate file and data processing workflows, enabling the AI to dispatch heavy processing tasks to Beam and manage results seamlessly.",
-      },
-    ],
-  },
-  {
-    id: "architecture",
-    num: "02",
-    title: "Architecture & Tech Stack",
-    titleAr: "البنية التقنية",
-    icon: "◎",
-    content: [
-      {
-        type: "stack",
-        items: [
-          { label: "Core Language", value: "Python 3.10+", tag: "RUNTIME" },
-          { label: "Connection Protocol", value: "FastMCP Library", tag: "PROTOCOL" },
-          { label: "Cloud Infrastructure", value: "Beam SDK", tag: "CLOUD" },
-          { label: "Environment Management", value: ".env / BEAM_API_KEY / BEAM_CLIENT_ID", tag: "CONFIG" },
-          { label: "Containerization", value: "Docker — Full Containerized Deployment", tag: "DEPLOY" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "functional",
-    num: "03",
-    title: "Functional Requirements",
-    titleAr: "المواصفات الوظيفية",
-    icon: "◉",
-    content: [
-      {
-        type: "tools",
-        items: [
-          {
-            name: "process_file(file_path)",
-            desc: "Accept local file path → validate existence → upload to Beam workspace → launch cloud task.",
-            badge: "TOOL",
-          },
-          {
-            name: "get_task_result(task_id)",
-            desc: "Query task status [Pending / Running / Completed / Failed] and retrieve final output upon completion.",
-            badge: "TOOL",
-          },
-          {
-            name: "list_recent_tasks()",
-            desc: "Display a log of the last 5 executed operations and their current status.",
-            badge: "TOOL",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "workflow",
-    num: "04",
-    title: "Workflow Logic",
-    titleAr: "سير العمل التقني",
-    icon: "⬡",
-    content: [
-      {
-        type: "workflow",
-        steps: [
-          {
-            step: "AUTH",
-            title: "Authentication",
-            desc: "API keys are validated at server startup before any task execution.",
-          },
-          {
-            step: "DISPATCH",
-            title: "Async Execution",
-            desc: "System dispatches task to Beam and immediately returns task_id to the user, then monitors status in background to prevent chat interface timeout.",
-          },
-          {
-            step: "FORMAT",
-            title: "Output Formatting",
-            desc: "Beam outputs (JSON or plain text) are transformed into clean, readable Markdown in the user interface.",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "nonfunctional",
-    num: "05",
-    title: "Non-Functional Requirements",
-    titleAr: "متطلبات الجودة",
-    icon: "◫",
-    content: [
-      {
-        type: "nfr",
-        items: [
-          {
-            category: "SECURITY",
-            points: [
-              "Block execution of unauthorized code outside the defined workspace.",
-              "Encrypted handling of directory access.",
-            ],
-          },
-          {
-            category: "ERROR HANDLING",
-            points: [
-              "Automatic Retry Mechanism on temporary API connection failures.",
-              "Clear error codes on failure: BEAM_CONN_ERR, FILE_NOT_FOUND.",
-            ],
-          },
-          {
-            category: "DOCUMENTATION",
-            points: [
-              "README.md: dependencies installation (requirements.txt).",
-              "Environment variable configuration guide.",
-              "Server startup & Claude Desktop connection steps.",
-            ],
-          },
-          {
-            category: "TESTING",
-            points: [
-              "Attach test_mcp.py script to verify Beam connection integrity.",
-            ],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "deliverables",
-    num: "06",
-    title: "Deliverables",
-    titleAr: "مخرجات التسليم",
-    icon: "◰",
-    content: [
-      {
-        type: "deliverables",
-        items: [
-          { icon: "⟨/⟩", label: "Source Code", desc: "Clean, fully documented codebase with inline comments." },
-          { icon: "◻", label: "Dockerfile", desc: "Containerized deployment ensuring cross-environment compatibility." },
-          { icon: "⊞", label: "Operation Guide", desc: "Step-by-step setup, configuration, and connection instructions." },
-          { icon: "◷", label: "14-Day Support", desc: "Programmer commits to fixing any bugs within 14 days of final delivery." },
-        ],
-      },
-    ],
-  },
-];
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
 
-export default function BeamMCPSpec() {
-  const [active, setActive] = useState("scope");
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  cursor: none;
+}
 
-  const activeSection = sections.find((s) => s.id === active);
+/* CUSTOM CURSOR */
+.cursor {
+  width: 12px; height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  position: fixed; pointer-events: none;
+  z-index: 99999;
+  transition: transform 0.1s;
+  mix-blend-mode: difference;
+}
+.cursor-ring {
+  width: 36px; height: 36px;
+  border: 1px solid rgba(0,255,136,0.4);
+  border-radius: 50%;
+  position: fixed; pointer-events: none;
+  z-index: 99998;
+  transition: all 0.15s ease;
+}
 
-  return (
-    <div style={{
-      fontFamily: "'Courier New', 'Lucida Console', monospace",
-      background: "#0a0a0f",
-      minHeight: "100vh",
-      color: "#c8d0e0",
-      display: "flex",
-      flexDirection: "column",
-    }}>
-      {/* Header */}
-      <header style={{
-        borderBottom: "1px solid #1e2535",
-        padding: "24px 40px 20px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        background: "linear-gradient(180deg, #0d0f1a 0%, #0a0a0f 100%)",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div style={{
-            width: 44, height: 44,
-            border: "1px solid #2a3550",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 20, color: "#4a90d9",
-            background: "rgba(74,144,217,0.06)",
-            letterSpacing: "-1px",
-          }}>⬡</div>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: "bold", letterSpacing: "4px", color: "#e8edf5", textTransform: "uppercase" }}>
-              BeamMCP
-            </div>
-            <div style={{ fontSize: 10, color: "#3d5080", letterSpacing: "3px", marginTop: 2 }}>
-              DATA WORKFLOW AUTOMATION AGENT
-            </div>
-          </div>
+/* NAV */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:1000;
+  padding: 20px 40px;
+  display: flex; justify-content:space-between; align-items:center;
+  background: rgba(3,6,13,0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(17,34,64,0.5);
+}
+.nav-logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.2rem; font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -1px;
+}
+.nav-logo span { color: var(--accent2); }
+.nav-links { display:flex; gap:32px; align-items:center; }
+.nav-links a {
+  color: var(--muted); text-decoration:none;
+  font-size: 0.85rem; font-weight: 500;
+  transition: color 0.2s; letter-spacing: 0.5px;
+}
+.nav-links a:hover { color: var(--accent); }
+.nav-cta {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent) !important;
+  padding: 8px 20px; border-radius: 6px;
+  transition: all 0.2s !important;
+}
+.nav-cta:hover {
+  background: rgba(0,255,136,0.1) !important;
+  color: var(--accent) !important;
+}
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex; align-items:center; justify-content:center;
+  text-align: center; padding: 100px 24px 60px;
+  position: relative; overflow:hidden;
+}
+.hero-bg {
+  position: absolute; inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0,255,136,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(0,194,255,0.05) 0%, transparent 50%);
+}
+.grid-lines {
+  position: absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridMove 20s linear infinite;
+}
+@keyframes gridMove {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(60px); }
+}
+.hero-content { position:relative; z-index:1; max-width: 900px; }
+.hero-badge {
+  display: inline-flex; align-items:center; gap:8px;
+  background: rgba(0,255,136,0.08);
+  border: 1px solid rgba(0,255,136,0.2);
+  padding: 8px 18px; border-radius:4px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem; color: var(--accent);
+  letter-spacing: 2px; margin-bottom: 32px;
+  animation: fadeUp 0.6s ease both;
+}
+.dot { width:6px; height:6px; background:var(--accent); border-radius:50%; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+.hero h1 {
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 900; line-height: 0.95;
+  letter-spacing: -3px; margin-bottom: 24px;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+.hero h1 .line1 { display:block; color: var(--white); }
+.hero h1 .line2 {
+  display:block;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.hero-sub {
+  font-size: 1.15rem; color: var(--muted);
+  max-width: 600px; margin: 0 auto 48px;
+  line-height: 1.8; font-weight: 400;
+  animation: fadeUp 0.6s 0.2s ease both;
+}
+.hero-btns {
+  display:flex; gap:16px; justify-content:center; flex-wrap:wrap;
+  animation: fadeUp 0.6s 0.3s ease both;
+}
+.btn-primary {
+  background: var(--accent); color: #000;
+  padding: 16px 36px; border-radius: 6px;
+  font-weight: 700; font-size: 0.95rem;
+  text-decoration:none; transition: all 0.2s;
+  font-family: 'Space Mono', monospace;
+  letter-spacing: -0.5px;
+}
+.btn-primary:hover { transform:translateY(-3px); box-shadow: 0 12px 40px rgba(0,255,136,0.3); }
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text); padding: 16px 36px; border-radius: 6px;
+  font-weight: 500; font-size: 0.95rem;
+  text-decoration:none; transition: all 0.2s;
+}
+.btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
+
+/* TERMINAL */
+.terminal-section {
+  padding: 80px 24px;
+  max-width: 900px; margin: 0 auto;
+}
+.terminal {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 12px; overflow:hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+}
+.terminal-header {
+  background: #161b22; padding: 14px 20px;
+  display:flex; align-items:center; gap:8px;
+  border-bottom: 1px solid var(--border);
+}
+.t-dot { width:12px; height:12px; border-radius:50%; }
+.t-red { background:#ff5f57; }
+.t-yellow { background:#febc2e; }
+.t-green { background:#28c840; }
+.t-title {
+  font-family:'Space Mono',monospace;
+  font-size:0.75rem; color:var(--muted);
+  margin-left:8px;
+}
+.terminal-body { padding:28px; font-family:'Space Mono',monospace; font-size:0.82rem; line-height:2; }
+.t-comment { color:#444c56; }
+.t-cmd { color: var(--accent2); }
+.t-string { color: var(--accent); }
+.t-output { color: var(--muted); }
+.t-success { color: var(--accent); }
+.t-line { display:block; }
+.typing::after { content:'▋'; animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* HOW IT WORKS */
+.section {
+  padding: 100px 24px;
+  max-width: 1100px; margin: 0 auto;
+}
+.section-label {
+  font-family:'Space Mono',monospace;
+  font-size:0.7rem; color:var(--accent);
+  letter-spacing:3px; text-transform:uppercase;
+  margin-bottom:12px;
+}
+.section-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800; letter-spacing:-1.5px;
+  margin-bottom: 60px; color: var(--white);
+}
+
+.steps { display:grid; gap:2px; }
+.step {
+  display:grid; grid-template-columns: 80px 1fr;
+  gap:24px; padding: 32px 0;
+  border-bottom: 1px solid rgba(17,34,64,0.5);
+  transition: all 0.3s;
+}
+.step:hover { background: rgba(0,255,136,0.02); padding-left:12px; }
+.step-num {
+  font-family:'Space Mono',monospace;
+  font-size:2.5rem; font-weight:700;
+  color: rgba(0,255,136,0.15);
+  line-height:1;
+}
+.step-content h3 {
+  font-size:1.2rem; font-weight:700;
+  color: var(--white); margin-bottom:8px;
+}
+.step-content p { color:var(--muted); line-height:1.7; font-size:0.95rem; }
+.step-tag {
+  display:inline-block; margin-top:10px;
+  background: rgba(0,194,255,0.1);
+  border: 1px solid rgba(0,194,255,0.2);
+  color: var(--accent2); padding:4px 12px;
+  border-radius:4px; font-size:0.75rem;
+  font-family:'Space Mono',monospace;
+}
+
+/* TOOLS GRID */
+.tools-grid {
+  display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap:1px; background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px; overflow:hidden;
+}
+.tool-item {
+  background: var(--card); padding:32px;
+  transition: all 0.3s;
+}
+.tool-item:hover { background: rgba(0,255,136,0.03); }
+.tool-icon { font-size:2rem; margin-bottom:16px; }
+.tool-name {
+  font-family:'Space Mono',monospace;
+  font-size:0.85rem; color:var(--accent);
+  margin-bottom:8px; letter-spacing:-0.5px;
+}
+.tool-desc { color:var(--muted); font-size:0.9rem; line-height:1.6; }
+
+/* DOMAIN SALE SECTION */
+.domain-section {
+  padding: 100px 24px;
+  background: linear-gradient(180deg, transparent, rgba(0,255,136,0.03), transparent);
+}
+.domain-inner {
+  max-width: 800px; margin: 0 auto; text-align:center;
+}
+.domain-card-big {
+  background: var(--card);
+  border: 1px solid rgba(0,255,136,0.2);
+  border-radius: 16px; padding: 60px 40px;
+  position:relative; overflow:hidden;
+  margin-top: 48px;
+}
+.domain-card-big::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.domain-card-big::after {
+  content:'FOR SALE';
+  position:absolute; top:20px; right:-30px;
+  background: var(--warn); color:#fff;
+  padding:6px 50px; font-size:0.7rem;
+  font-family:'Space Mono',monospace;
+  font-weight:700; transform:rotate(45deg);
+  letter-spacing:2px;
+}
+.domain-name-big {
+  font-family:'Space Mono',monospace;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight:700; letter-spacing:-2px;
+  color: var(--white); margin-bottom:16px;
+}
+.domain-name-big span { color:var(--accent); }
+.domain-tagline { color:var(--muted); font-size:1rem; margin-bottom:40px; }
+.domain-features {
+  display:flex; justify-content:center; gap:32px;
+  flex-wrap:wrap; margin-bottom:48px;
+}
+.domain-feat {
+  text-align:center;
+}
+.feat-val {
+  font-family:'Space Mono',monospace;
+  font-size:1.5rem; color:var(--accent);
+  font-weight:700;
+}
+.feat-label { font-size:0.75rem; color:var(--muted); margin-top:4px; }
+
+.domain-btns { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+.btn-buy {
+  background: var(--accent); color:#000;
+  padding: 16px 40px; border-radius:8px;
+  font-weight:700; font-size:1rem;
+  text-decoration:none; transition:all 0.2s;
+  font-family:'Space Mono',monospace;
+  display:inline-flex; align-items:center; gap:8px;
+}
+.btn-buy:hover { transform:translateY(-3px); box-shadow:0 16px 48px rgba(0,255,136,0.3); }
+.btn-offer {
+  background: transparent;
+  border: 1px solid var(--muted);
+  color: var(--text); padding: 16px 40px; border-radius:8px;
+  font-weight:500; font-size:1rem;
+  text-decoration:none; transition:all 0.2s;
+  display:inline-flex; align-items:center; gap:8px;
+  cursor:pointer;
+}
+.btn-offer:hover { border-color:var(--accent2); color:var(--accent2); }
+
+/* OFFER MODAL */
+.modal-overlay {
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.8);
+  backdrop-filter:blur(8px);
+  z-index:9000; display:none;
+  align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px; padding:48px;
+  max-width:500px; width:90%;
+  position:relative;
+}
+.modal h3 {
+  font-size:1.5rem; font-weight:800;
+  color:var(--white); margin-bottom:8px;
+}
+.modal p { color:var(--muted); margin-bottom:28px; font-size:0.9rem; }
+.modal-input {
+  width:100%; background:var(--bg2);
+  border:1px solid var(--border);
+  color:var(--text); padding:14px 18px;
+  border-radius:8px; font-size:0.95rem;
+  margin-bottom:14px; font-family:'Outfit',sans-serif;
+  transition:all 0.2s;
+}
+.modal-input:focus { outline:none; border-color:var(--accent); }
+.modal-submit {
+  width:100%; background:var(--accent);
+  color:#000; border:none; padding:16px;
+  border-radius:8px; font-weight:700;
+  font-size:1rem; cursor:pointer;
+  font-family:'Space Mono',monospace;
+  transition:all 0.2s;
+}
+.modal-submit:hover { transform:translateY(-2px); }
+.modal-close {
+  position:absolute; top:16px; right:20px;
+  background:none; border:none; color:var(--muted);
+  font-size:1.5rem; cursor:pointer;
+}
+
+/* FOOTER */
+footer {
+  border-top:1px solid var(--border);
+  padding:40px 24px; text-align:center;
+  color:var(--muted); font-size:0.85rem;
+}
+footer strong { color:var(--accent); font-family:'Space Mono',monospace; }
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Beam<span>MCP</span></div>
+  <div class="nav-links">
+    <a href="#how">How It Works</a>
+    <a href="#tools">Tools</a>
+    <a href="#domain">Domain</a>
+    <a href="#domain" class="nav-cta">Buy Domain →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="grid-lines"></div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <div class="dot"></div>
+      MCP SERVER · POWERED BY MODAL
+    </div>
+    <h1>
+      <span class="line1">The MCP Agent</span>
+      <span class="line2">That Gets Things Done</span>
+    </h1>
+    <p class="hero-sub">
+      BeamMCP connects your AI agent to real cloud compute. Send tasks, process files, run Python — all through the Model Context Protocol standard.
+    </p>
+    <div class="hero-btns">
+      <a href="#how" class="btn-primary">→ See How It Works</a>
+      <a href="#tools" class="btn-secondary">View MCP Tools</a>
+    </div>
+  </div>
+</section>
+
+<!-- TERMINAL -->
+<div class="terminal-section">
+  <div class="terminal">
+    <div class="terminal-header">
+      <div class="t-dot t-red"></div>
+      <div class="t-dot t-yellow"></div>
+      <div class="t-dot t-green"></div>
+      <span class="t-title">beammcp-agent · running on Modal</span>
+    </div>
+    <div class="terminal-body">
+      <span class="t-line t-comment"># Connect Claude to BeamMCP</span>
+      <span class="t-line"><span class="t-cmd">from</span> fastmcp <span class="t-cmd">import</span> FastMCP</span>
+      <span class="t-line"><span class="t-cmd">import</span> modal</span>
+      <span class="t-line"> </span>
+      <span class="t-line t-comment"># Initialize BeamMCP Agent</span>
+      <span class="t-line">mcp = FastMCP(<span class="t-string">"BeamMCP-Agent"</span>)</span>
+      <span class="t-line"> </span>
+      <span class="t-line t-comment"># AI agent calls this tool</span>
+      <span class="t-line">result = mcp.process_file(<span class="t-string">"data.csv"</span>)</span>
+      <span class="t-line"> </span>
+      <span class="t-line t-success">✓ Task dispatched to Modal cloud</span>
+      <span class="t-line t-success">✓ Processing complete in 1.2s</span>
+      <span class="t-line t-output">→ Result: File processed successfully</span>
+      <span class="t-line typing"> </span>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="section-label">// HOW IT WORKS</div>
+  <div class="section-title">Three steps.<br>Infinite possibilities.</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-content">
+        <h3>Connect Your AI Agent</h3>
+        <p>Point any MCP-compatible client — Claude, Cursor, or your own agent — to the BeamMCP server endpoint. No complex setup required.</p>
+        <span class="step-tag">streamable-http transport</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-content">
+        <h3>Call MCP Tools Naturally</h3>
+        <p>Your AI agent discovers available tools automatically. It can process files, check task status, and list recent jobs — all through natural language.</p>
+        <span class="step-tag">tools/list · tools/call</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-content">
+        <h3>Modal Executes in the Cloud</h3>
+        <p>Heavy compute runs on Modal's serverless infrastructure. Your agent gets results without worrying about servers, scaling, or timeouts.</p>
+        <span class="step-tag">serverless · auto-scaling</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section class="section" id="tools">
+  <div class="section-label">// MCP TOOLS</div>
+  <div class="section-title">Built-in tools.<br>Ready to use.</div>
+  <div class="tools-grid">
+    <div class="tool-item">
+      <div class="tool-icon">📁</div>
+      <div class="tool-name">process_file()</div>
+      <div class="tool-desc">Send any file path to Modal for cloud processing. Returns status and result automatically.</div>
+    </div>
+    <div class="tool-item">
+      <div class="tool-icon">🔍</div>
+      <div class="tool-name">get_task_result()</div>
+      <div class="tool-desc">Query the status and output of any running or completed task by its unique ID.</div>
+    </div>
+    <div class="tool-item">
+      <div class="tool-icon">📋</div>
+      <div class="tool-name">list_recent_tasks()</div>
+      <div class="tool-desc">Get a list of recent tasks with their statuses. Perfect for monitoring and debugging.</div>
+    </div>
+  </div>
+</section>
+
+<!-- DOMAIN SALE -->
+<section class="domain-section" id="domain">
+  <div class="domain-inner">
+    <div class="section-label" style="text-align:center">// PREMIUM DOMAIN FOR SALE</div>
+    <div class="section-title" style="text-align:center">Own the brand.<br>Own the future.</div>
+
+    <div class="domain-card-big">
+      <div class="domain-name-big">Beam<span>MCP</span>.com</div>
+      <div class="domain-tagline">The definitive domain for MCP infrastructure — before someone else takes it.</div>
+
+      <div class="domain-features">
+        <div class="domain-feat">
+          <div class="feat-val">.com</div>
+          <div class="feat-label">Extension</div>
         </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 10, color: "#3d5080", letterSpacing: "2px" }}>TECHNICAL SPECIFICATION</div>
-          <div style={{ fontSize: 10, color: "#2a3d60", marginTop: 2, letterSpacing: "1px" }}>REV 1.0 · MCP-BEAM PROTOCOL</div>
+        <div class="domain-feat">
+          <div class="feat-val">7</div>
+          <div class="feat-label">Characters</div>
         </div>
-      </header>
-
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <nav style={{
-          width: 220,
-          borderRight: "1px solid #141926",
-          padding: "24px 0",
-          flexShrink: 0,
-          background: "rgba(10,12,22,0.8)",
-        }}>
-          {sections.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setActive(s.id)}
-              style={{
-                width: "100%", textAlign: "left",
-                background: active === s.id ? "rgba(74,144,217,0.08)" : "transparent",
-                border: "none",
-                borderLeft: active === s.id ? "2px solid #4a90d9" : "2px solid transparent",
-                padding: "12px 20px",
-                cursor: "pointer",
-                color: active === s.id ? "#7ab8f5" : "#3d5080",
-                display: "flex", alignItems: "center", gap: 12,
-                transition: "all 0.15s",
-                fontSize: 11,
-                letterSpacing: "1px",
-              }}
-            >
-              <span style={{ color: active === s.id ? "#4a90d9" : "#253045", fontSize: 13 }}>{s.icon}</span>
-              <div>
-                <div style={{ fontWeight: active === s.id ? "bold" : "normal" }}>{s.num}</div>
-                <div style={{ fontSize: 10, marginTop: 2, lineHeight: 1.4, color: active === s.id ? "#7ab8f5" : "#2d3e5a" }}>
-                  {s.title.toUpperCase()}
-                </div>
-              </div>
-            </button>
-          ))}
-
-          <div style={{ margin: "32px 20px 0", borderTop: "1px solid #141926", paddingTop: 20 }}>
-            <div style={{ fontSize: 9, color: "#1e2a40", letterSpacing: "2px", marginBottom: 8 }}>COMPONENTS</div>
-            {["Claude Desktop", "MCP Server", "Beam.cloud", "Docker Container"].map((c) => (
-              <div key={c} style={{
-                fontSize: 10, color: "#253045", padding: "4px 0",
-                display: "flex", alignItems: "center", gap: 6,
-              }}>
-                <span style={{ color: "#1e3060" }}>▸</span> {c}
-              </div>
-            ))}
-          </div>
-        </nav>
-
-        {/* Main Content */}
-        <main style={{ flex: 1, padding: "36px 48px", overflowY: "auto" }}>
-          {activeSection && (
-            <div>
-              {/* Section Header */}
-              <div style={{ marginBottom: 36 }}>
-                <div style={{ fontSize: 10, color: "#2a3d60", letterSpacing: "4px", marginBottom: 8 }}>
-                  SECTION {activeSection.num}
-                </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
-                  <h1 style={{
-                    fontSize: 28, fontWeight: "bold", color: "#d0daea",
-                    letterSpacing: "2px", margin: 0, textTransform: "uppercase",
-                  }}>
-                    {activeSection.title}
-                  </h1>
-                  <span style={{ fontSize: 13, color: "#2a3d60", letterSpacing: "2px" }}>
-                    [{activeSection.titleAr}]
-                  </span>
-                </div>
-                <div style={{ width: 60, height: 1, background: "#4a90d9", marginTop: 12, opacity: 0.5 }} />
-              </div>
-
-              {/* Content */}
-              {activeSection.content.map((block, i) => (
-                <div key={i}>
-                  {block.type === "paragraph" && (
-                    <p style={{
-                      fontSize: 13, lineHeight: 1.9, color: "#8090a8",
-                      maxWidth: 680, margin: 0,
-                      borderLeft: "2px solid #1a2540",
-                      paddingLeft: 20,
-                    }}>{block.text}</p>
-                  )}
-
-                  {block.type === "stack" && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                      {block.items.map((item, j) => (
-                        <div key={j} style={{
-                          display: "flex", alignItems: "center",
-                          border: "1px solid #141926",
-                          background: "rgba(20,25,45,0.5)",
-                          padding: "14px 20px",
-                          gap: 20,
-                        }}>
-                          <span style={{
-                            fontSize: 9, letterSpacing: "2px", color: "#2a4070",
-                            background: "rgba(42,64,112,0.2)",
-                            border: "1px solid #1a3060",
-                            padding: "3px 8px",
-                            whiteSpace: "nowrap",
-                            minWidth: 80, textAlign: "center",
-                          }}>{item.tag}</span>
-                          <div style={{ fontSize: 11, color: "#4a6090", minWidth: 160 }}>{item.label}</div>
-                          <div style={{ fontSize: 12, color: "#90aad0", fontWeight: "bold", letterSpacing: "1px" }}>{item.value}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {block.type === "tools" && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                      {block.items.map((tool, j) => (
-                        <div key={j} style={{
-                          border: "1px solid #141926",
-                          background: "rgba(16,22,40,0.6)",
-                          padding: "20px 24px",
-                          position: "relative",
-                        }}>
-                          <div style={{
-                            position: "absolute", top: -1, right: 20,
-                            fontSize: 9, letterSpacing: "2px",
-                            background: "#4a90d9", color: "#0a0a0f",
-                            padding: "2px 10px",
-                          }}>{tool.badge}</div>
-                          <div style={{
-                            fontSize: 13, color: "#7ab8f5", fontWeight: "bold",
-                            marginBottom: 10, letterSpacing: "1px",
-                          }}>{tool.name}</div>
-                          <div style={{ fontSize: 12, color: "#5a7090", lineHeight: 1.7 }}>{tool.desc}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {block.type === "workflow" && (
-                    <div style={{ display: "flex", gap: 0, flexWrap: "wrap" }}>
-                      {block.steps.map((step, j) => (
-                        <div key={j} style={{ display: "flex", alignItems: "stretch" }}>
-                          <div style={{
-                            border: "1px solid #141926",
-                            background: "rgba(16,22,40,0.6)",
-                            padding: "24px 28px",
-                            width: 200,
-                          }}>
-                            <div style={{
-                              fontSize: 9, letterSpacing: "3px", color: "#4a90d9",
-                              marginBottom: 10,
-                            }}>{step.step}</div>
-                            <div style={{ fontSize: 13, color: "#c0d0e8", fontWeight: "bold", marginBottom: 8 }}>
-                              {step.title}
-                            </div>
-                            <div style={{ fontSize: 11, color: "#4a6080", lineHeight: 1.7 }}>{step.desc}</div>
-                          </div>
-                          {j < block.steps.length - 1 && (
-                            <div style={{
-                              display: "flex", alignItems: "center",
-                              padding: "0 8px", color: "#1e3060", fontSize: 18,
-                            }}>→</div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {block.type === "nfr" && (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                      {block.items.map((item, j) => (
-                        <div key={j} style={{
-                          border: "1px solid #141926",
-                          background: "rgba(16,22,40,0.6)",
-                          padding: "20px 24px",
-                        }}>
-                          <div style={{
-                            fontSize: 9, letterSpacing: "3px", color: "#4a90d9",
-                            marginBottom: 14, paddingBottom: 8,
-                            borderBottom: "1px solid #141926",
-                          }}>{item.category}</div>
-                          {item.points.map((p, k) => (
-                            <div key={k} style={{
-                              fontSize: 11, color: "#5a7090", lineHeight: 1.7,
-                              display: "flex", gap: 8, marginBottom: 6,
-                            }}>
-                              <span style={{ color: "#2a4070", flexShrink: 0 }}>▸</span>
-                              <span>{p}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {block.type === "deliverables" && (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                      {block.items.map((item, j) => (
-                        <div key={j} style={{
-                          border: "1px solid #141926",
-                          background: "rgba(16,22,40,0.6)",
-                          padding: "22px 24px",
-                          display: "flex", gap: 16, alignItems: "flex-start",
-                        }}>
-                          <div style={{
-                            fontSize: 20, color: "#2a4070", flexShrink: 0, marginTop: 2,
-                          }}>{item.icon}</div>
-                          <div>
-                            <div style={{ fontSize: 12, color: "#90aad0", fontWeight: "bold", marginBottom: 6, letterSpacing: "1px" }}>
-                              {item.label.toUpperCase()}
-                            </div>
-                            <div style={{ fontSize: 11, color: "#4a6080", lineHeight: 1.7 }}>{item.desc}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </main>
+        <div class="domain-feat">
+          <div class="feat-val">MCP</div>
+          <div class="feat-label">Trending Keyword</div>
+        </div>
+        <div class="domain-feat">
+          <div class="feat-val">2025</div>
+          <div class="feat-label">Registered</div>
+        </div>
       </div>
 
-      {/* Footer */}
-      <footer style={{
-        borderTop: "1px solid #0f1520",
-        padding: "12px 40px",
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        background: "#080b14",
-      }}>
-        <div style={{ fontSize: 9, color: "#1a2540", letterSpacing: "3px" }}>
-          BEAMMCP · MCP-BEAM PROTOCOL · DATA WORKFLOW AUTOMATION
-        </div>
-        <div style={{ display: "flex", gap: 24 }}>
-          {["Python 3.10+", "FastMCP", "Beam SDK", "Docker"].map((t) => (
-            <span key={t} style={{ fontSize: 9, color: "#1e3050", letterSpacing: "2px" }}>{t}</span>
-          ))}
-        </div>
-      </footer>
+      <div class="domain-btns">
+        <a href="https://www.godaddy.com/domainsearch/find?checkAvail=1&domainToCheck=BeamMCP.com" target="_blank" class="btn-buy">
+          🛒 Buy on GoDaddy
+        </a>
+        <button class="btn-offer" onclick="openModal()">
+          ✉️ Make an Offer
+        </button>
+      </div>
     </div>
-  );
+  </div>
+</section>
+
+<!-- OFFER MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h3>Make an Offer</h3>
+    <p>Send your offer for BeamMCP.com and we'll get back to you within 24 hours.</p>
+    <input type="text" class="modal-input" placeholder="Your Name" id="offerName">
+    <input type="email" class="modal-input" placeholder="Your Email" id="offerEmail">
+    <input type="text" class="modal-input" placeholder="Your Offer (e.g. $500)" id="offerPrice">
+    <textarea class="modal-input" rows="3" placeholder="Message (optional)" id="offerMsg" style="resize:none"></textarea>
+    <button class="modal-submit" onclick="sendOffer()">Send Offer →</button>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 <strong>BeamMCP</strong> · Built with FastMCP + Modal · Domain inquiries: <a href="mailto:cccvcccv3@gmail.com" style="color:var(--accent2)">cccvcccv3@gmail.com</a></p>
+</footer>
+
+<script>
+// CURSOR
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX - 6 + 'px';
+  cursor.style.top = e.clientY - 6 + 'px';
+  ring.style.left = e.clientX - 18 + 'px';
+  ring.style.top = e.clientY - 18 + 'px';
+});
+document.querySelectorAll('a,button').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.transform = 'scale(2)';
+    ring.style.transform = 'scale(1.5)';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.transform = 'scale(1)';
+    ring.style.transform = 'scale(1)';
+  });
+});
+
+// MODAL
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open');
 }
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+function sendOffer() {
+  const name = document.getElementById('offerName').value;
+  const email = document.getElementById('offerEmail').value;
+  const price = document.getElementById('offerPrice').value;
+  const msg = document.getElementById('offerMsg').value;
+  if(!name || !email || !price) { alert('Please fill all required fields'); return; }
+  const subject = encodeURIComponent(`Offer for BeamMCP.com - ${price}`);
+  const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\nOffer: ${price}\nMessage: ${msg}`);
+  window.location.href = `mailto:cccvcccv3@gmail.com?subject=${subject}&body=${body}`;
+  closeModal();
+}
+
+// CLOSE MODAL ON OVERLAY CLICK
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if(e.target === document.getElementById('modalOverlay')) closeModal();
+});
+
+// SCROLL ANIMATIONS
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting) e.target.style.opacity = '1';
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.step, .tool-item').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transition = 'opacity 0.6s ease';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
