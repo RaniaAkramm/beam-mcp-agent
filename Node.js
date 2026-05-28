@@ -5,14 +5,27 @@ import { fileURLToPath } from "url";
 const app = express();
 app.use(express.json());
 
-// لازم هذا لأنك تستخدم ES modules
+// ضروري لتعريف المسارات
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 📁 عرض ملفات الموقع (HTML/CSS/JS)
-app.use(express.static("public"));
+/* =========================
+   📁 FRONTEND (الموقع)
+========================= */
 
-/* ---------------- MCP TOOLS ---------------- */
+// لازم يكون عندك مجلد اسمه public وفيه index.html
+app.use(express.static(path.join(__dirname, "public")));
+
+// الصفحة الرئيسية (إجباري)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+
+/* =========================
+   ⚙️ MCP API
+========================= */
+
 const tools = [
   {
     name: "searchDomain",
@@ -27,8 +40,7 @@ const tools = [
   }
 ];
 
-/* ---------------- MCP ENDPOINT ---------------- */
-app.post("/mcp", async (req, res) => {
+app.post("/mcp", (req, res) => {
   const { method, params, id } = req.body;
 
   // Initialize
@@ -68,15 +80,18 @@ app.post("/mcp", async (req, res) => {
     }
   }
 
-  res.status(404).json({ error: "Unknown method" });
+  return res.status(404).json({
+    error: "Unknown method"
+  });
 });
 
-/* ---------------- HOME PAGE ---------------- */
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
 
-/* ---------------- START SERVER ---------------- */
-app.listen(3000, () => {
-  console.log("BeamMCP running on port 3000");
+/* =========================
+   🚀 تشغيل السيرفر
+========================= */
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`BeamMCP running on port ${PORT}`);
 });
