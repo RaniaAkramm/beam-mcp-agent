@@ -1,9 +1,18 @@
 import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 app.use(express.json());
 
-// MCP tools
+// لازم هذا لأنك تستخدم ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 📁 عرض ملفات الموقع (HTML/CSS/JS)
+app.use(express.static("public"));
+
+/* ---------------- MCP TOOLS ---------------- */
 const tools = [
   {
     name: "searchDomain",
@@ -18,7 +27,7 @@ const tools = [
   }
 ];
 
-// 1) MCP endpoint (INIT + messages)
+/* ---------------- MCP ENDPOINT ---------------- */
 app.post("/mcp", async (req, res) => {
   const { method, params, id } = req.body;
 
@@ -62,6 +71,12 @@ app.post("/mcp", async (req, res) => {
   res.status(404).json({ error: "Unknown method" });
 });
 
+/* ---------------- HOME PAGE ---------------- */
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+/* ---------------- START SERVER ---------------- */
 app.listen(3000, () => {
   console.log("BeamMCP running on port 3000");
 });
