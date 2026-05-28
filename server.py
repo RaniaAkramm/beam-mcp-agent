@@ -3,7 +3,7 @@ import uvicorn
 import modal
 
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from fastmcp import FastMCP
 from dotenv import load_dotenv
@@ -15,13 +15,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # =========================================
-# إنشاء تطبيق FastMCP
+# إنشاء FastAPI
+# =========================================
+
+app = FastAPI()
+
+# =========================================
+# إنشاء MCP
 # =========================================
 
 mcp = FastMCP("BeamMCP-Agent")
 
 # =========================================
-# أدوات MCP
+# MCP Tools
 # =========================================
 
 @mcp.tool()
@@ -33,7 +39,7 @@ def process_file(file_path: str) -> str:
     try:
 
         # مثال ربط Modal
-        # قم بتعديلها لاحقاً حسب حسابك
+        # عدلها لاحقاً حسب حسابك
 
         # f = modal.Function.lookup(
         #     "your-modal-app",
@@ -75,74 +81,13 @@ def list_recent_tasks() -> str:
 
 
 # =========================================
-# إنشاء FastAPI
-# =========================================
-
-app = FastAPI()
-
-# =========================================
 # الصفحة الرئيسية
 # =========================================
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 async def home():
 
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>BeamMCP</title>
-
-        <style>
-
-            body{
-                margin:0;
-                padding:0;
-                background:#0b0b0f;
-                color:white;
-                font-family:Arial;
-                display:flex;
-                justify-content:center;
-                align-items:center;
-                height:100vh;
-                flex-direction:column;
-            }
-
-            h1{
-                font-size:64px;
-                margin:0;
-            }
-
-            p{
-                color:#999;
-                margin-top:12px;
-                font-size:18px;
-            }
-
-            .status{
-                margin-top:25px;
-                padding:10px 18px;
-                border-radius:12px;
-                background:#15151d;
-                border:1px solid #262636;
-            }
-
-        </style>
-    </head>
-
-    <body>
-
-        <h1>BeamMCP</h1>
-
-        <p>MCP Server Running Successfully</p>
-
-        <div class="status">
-            Status: Online
-        </div>
-
-    </body>
-    </html>
-    """
+    return FileResponse("index.html")
 
 
 # =========================================
@@ -156,12 +101,13 @@ async def mcp_info():
         "name": "BeamMCP-Agent",
         "status": "online",
         "protocol": "MCP",
-        "endpoint": "/mcp/ws"
+        "endpoint": "/mcp/ws",
+        "website": "https://BeamMCP.com"
     })
 
 
 # =========================================
-# ربط MCP الحقيقي
+# MCP الحقيقي
 # =========================================
 
 mcp_app = mcp.http_app()
