@@ -1,4 +1,4 @@
-fastmcp
+Fastmcp
 websockets
 pydantic>=2.10,<3
 httpx>=0.28
@@ -7,5 +7,3 @@ authlib>=1.3
 python-dotenv>=1.0
 beam-client
 modal
-fastapi
-starlette
