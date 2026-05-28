@@ -1,85 +1,96 @@
 import os
 import uvicorn
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastmcp import FastMCP
-
 from dotenv import load_dotenv
 
-# =========================================
-# Load environment
-# =========================================
+# =========================
+# إعداد البيئة
+# =========================
 load_dotenv()
 
-# =========================================
-# FastAPI app
-# =========================================
-app = FastAPI(title="BeamMCP")
+API_KEY = os.getenv("API_KEY", "beam-123456")
 
-# =========================================
-# MCP server
-# =========================================
+# =========================
+# FastAPI
+# =========================
+app = FastAPI(title="BeamMCP SaaS")
+
+# =========================
+# حماية API Key
+# =========================
+@app.middleware("http")
+async def check_api_key(request: Request, call_next):
+    if request.url.path.startswith("/mcp"):
+        key = request.headers.get("x-api-key")
+        if key != API_KEY:
+            return JSONResponse({"error": "Unauthorized"}, status_code=401)
+
+    return await call_next(request)
+
+# =========================
+# MCP Server
+# =========================
 mcp = FastMCP("BeamMCP-Agent")
 
-# =========================================
-# TOOLS
-# =========================================
+# =========================
+# الأدوات (TOOLS)
+# =========================
 
 @mcp.tool()
-def process_file(file_path: str) -> str:
-    return f"تم معالجة الملف: {file_path}"
+def search_domain(domain: str) -> dict:
+    return {
+        "domain": domain,
+        "available": True,
+        "price": "$12"
+    }
 
 
 @mcp.tool()
-def get_task_result(task_id: str) -> str:
-    return f"حالة المهمة: {task_id}"
+def analyze_text(text: str) -> dict:
+    return {
+        "length": len(text),
+        "summary": text[:50]
+    }
 
 
 @mcp.tool()
-def list_recent_tasks() -> str:
-    return "لا توجد مهام حالياً"
+def generate_report(name: str) -> dict:
+    return {
+        "project": name,
+        "status": "generated",
+        "score": 90
+    }
 
-
-# =========================================
-# MCP mount (IMPORTANT FIX)
-# =========================================
-
+# =========================
+# MCP endpoint الصحيح
+# =========================
 mcp_app = mcp.http_app()
-
-# ❌ كان /mcp/ws (خطأ)
-# ✔ الصحيح /mcp
 app.mount("/mcp", mcp_app)
 
+# =========================
+# Dashboard
+# =========================
+@app.get("/dashboard")
+async def dashboard():
+    return {
+        "name": "BeamMCP SaaS",
+        "status": "running",
+        "tools": 3
+    }
 
-# =========================================
-# Info endpoint (optional)
-# =========================================
-
-@app.get("/mcp/info")
-async def mcp_info():
-    return JSONResponse({
-        "name": "BeamMCP-Agent",
-        "status": "online",
-        "protocol": "mcp-streamable-http",
-        "endpoint": "/mcp",
-        "website": "https://BeamMCP.com"
-    })
-
-
-# =========================================
-# Home page (optional)
-# =========================================
-
+# =========================
+# Home
+# =========================
 @app.get("/")
 async def home():
     return {"message": "BeamMCP is running"}
 
-
-# =========================================
-# Run server
-# =========================================
-
+# =========================
+# تشغيل السيرفر
+# =========================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
 
