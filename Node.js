@@ -5,27 +5,30 @@ import { fileURLToPath } from "url";
 const app = express();
 app.use(express.json());
 
-// ضروري لتعريف المسارات
+// =========================
+// Fix __dirname (ESM)
+// =========================
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/* =========================
-   📁 FRONTEND (الموقع)
-========================= */
+// =========================
+// FRONTEND (STATIC SITE)
+// =========================
+const publicPath = path.join(__dirname, "public");
 
-// لازم يكون عندك مجلد اسمه public وفيه index.html
-app.use(express.static(path.join(__dirname, "public")));
+// لازم هذا أولاً
+app.use(express.static(publicPath));
 
-// الصفحة الرئيسية (إجباري)
+// =========================
+// HOME PAGE (IMPORTANT FIX)
+// =========================
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(publicPath, "index.html"));
 });
 
-
-/* =========================
-   ⚙️ MCP API
-========================= */
-
+// =========================
+// MCP TOOLS
+// =========================
 const tools = [
   {
     name: "searchDomain",
@@ -40,10 +43,13 @@ const tools = [
   }
 ];
 
+// =========================
+// MCP API
+// =========================
 app.post("/mcp", (req, res) => {
   const { method, params, id } = req.body;
 
-  // Initialize
+  // INIT
   if (method === "initialize") {
     return res.json({
       jsonrpc: "2.0",
@@ -55,7 +61,7 @@ app.post("/mcp", (req, res) => {
     });
   }
 
-  // List tools
+  // LIST TOOLS
   if (method === "tools/list") {
     return res.json({
       jsonrpc: "2.0",
@@ -64,7 +70,7 @@ app.post("/mcp", (req, res) => {
     });
   }
 
-  // Call tool
+  // CALL TOOL
   if (method === "tools/call") {
     const { name, arguments: args } = params;
 
@@ -73,8 +79,8 @@ app.post("/mcp", (req, res) => {
         jsonrpc: "2.0",
         id,
         result: {
-          available: true,
-          domain: args.domain
+          domain: args.domain,
+          available: true
         }
       });
     }
@@ -85,13 +91,21 @@ app.post("/mcp", (req, res) => {
   });
 });
 
+// =========================
+// HEALTH CHECK (OPTIONAL)
+// =========================
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "BeamMCP"
+  });
+});
 
-/* =========================
-   🚀 تشغيل السيرفر
-========================= */
-
+// =========================
+// START SERVER
+// =========================
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`BeamMCP running on port ${PORT}`);
+  console.log(`🚀 BeamMCP running on port ${PORT}`);
 });
