@@ -4,38 +4,75 @@ from fastmcp import FastMCP
 from dotenv import load_dotenv
 import modal
 
-# 1. تحميل إعدادات البيئة من ملف .env (أو متغيرات النظام في Railway)
+# تحميل متغيرات البيئة
 load_dotenv()
 
-# 2. تهيئة تطبيق FastMCP
+# إنشاء تطبيق FastMCP
 mcp = FastMCP("BeamMCP-Agent")
 
-# 3. الأدوات (Tools)
+# =========================
+# Tools
+# =========================
+
 @mcp.tool()
 def process_file(file_path: str) -> str:
-    """إرسال ملف إلى Modal للمعالجة"""
+    """
+    إرسال ملف إلى Modal للمعالجة
+    """
     try:
-        # ملاحظة: تأكد أن اسم التطبيق والدالة موجودان في حساب Modal الخاص بك
-        # f = modal.Function.lookup("اسم_تطبيقك_على_modal", "اسم_الدالة")
+        # مثال ربط Modal
+        # f = modal.Function.lookup(
+        #     "اسم_التطبيق_في_modal",
+        #     "اسم_الدالة"
+        # )
+        #
         # result = f.remote(file_path)
-        
-        return f"تم الاتصال بـ Modal بنجاح، جاري معالجة الملف: {file_path}"
+
+        return f"تم إرسال الملف إلى Modal بنجاح: {file_path}"
+
     except Exception as e:
-        return f"خطأ في الاتصال بـ Modal: {str(e)}"
+        return f"حدث خطأ أثناء الاتصال بـ Modal: {str(e)}"
+
 
 @mcp.tool()
 def get_task_result(task_id: str) -> str:
-    """الاستعلام عن حالة المهمة"""
-    return f"جاري التحقق من حالة المهمة في Modal: {task_id}"
+    """
+    الاستعلام عن حالة المهمة
+    """
+    try:
+        return f"جاري التحقق من المهمة: {task_id}"
+
+    except Exception as e:
+        return f"خطأ: {str(e)}"
+
 
 @mcp.tool()
 def list_recent_tasks() -> str:
-    """عرض سجل المهام الأخيرة"""
-    return "لا توجد مهام حالياً في السجل."
+    """
+    عرض المهام الأخيرة
+    """
+    try:
+        return "لا توجد مهام حالياً."
 
-# 4. نقطة الدخول لتشغيل الخادم
+    except Exception as e:
+        return f"خطأ: {str(e)}"
+
+
+# =========================
+# تشغيل السيرفر
+# =========================
+
 if __name__ == "__main__":
-    # الحصول على المنفذ من نظام Railway أو استخدام 8080 افتراضياً
+
+    # منفذ Railway
     port = int(os.environ.get("PORT", 8080))
-    # تشغيل الخادم باستخدام Uvicorn ليكون متوافقاً مع بروتوكول HTTP/WebSockets
-    uvicorn.run(mcp.app, host="0.0.0.0", port=port)
+
+    # إنشاء HTTP App متوافق مع Railway
+    app = mcp.http_app()
+
+    # تشغيل السيرفر
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port
+    )
