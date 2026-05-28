@@ -3,13 +3,15 @@ import uvicorn
 from fastmcp import FastMCP
 from dotenv import load_dotenv
 import modal
+
+# تم إضافة المكتبات التالية لدعم صفحة الويب
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
 # تحميل متغيرات البيئة
 load_dotenv()
 
-# إنشاء تطبيق FastMCP
+# إنشاء تطبيق FastMCP (كودك الأصلي)
 mcp = FastMCP("BeamMCP-Agent")
 
 # =========================
@@ -41,18 +43,18 @@ def list_recent_tasks() -> str:
         return f"خطأ: {str(e)}"
 
 # =========================
-# إضافة لدعم الموقع (دون حذف أي شيء)
+# تعديل لتقديم صفحة الويب
 # =========================
 
-# دمج تطبيق MCP داخل FastAPI ليتمكن من تقديم ملفات الويب
+# إنشاء تطبيق FastAPI
 app = FastAPI()
 
-# مسار الصفحة الرئيسية لتقديم ملف index.html
+# مسار لجلب ملف index.html
 @app.get("/")
 async def read_index():
     return FileResponse("index.html")
 
-# دمج مسارات الـ MCP
+# ربط الـ MCP بتطبيق الويب
 app.mount("/mcp", mcp.app)
 
 # =========================
@@ -63,9 +65,5 @@ if __name__ == "__main__":
     # منفذ Railway
     port = int(os.environ.get("PORT", 8080))
 
-    # تشغيل السيرفر باستخدام تطبيق FastAPI المدمج
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=port
-    )
+    # تشغيل السيرفر باستخدام FastAPI
+    uvicorn.run(app, host="0.0.0.0", port=port)
