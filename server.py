@@ -1,6 +1,7 @@
 import os
 import uvicorn
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastmcp import FastMCP
@@ -11,22 +12,6 @@ from dotenv import load_dotenv
 # =========================
 load_dotenv()
 API_KEY = os.getenv("API_KEY", "beam-123456")
-
-# =========================
-# FASTAPI APP
-# =========================
-app = FastAPI(title="BeamMCP SaaS")
-
-# =========================
-# API KEY PROTECTION (MCP ONLY)
-# =========================
-@app.middleware("http")
-async def check_api_key(request: Request, call_next):
-    if request.url.path.startswith("/mcp"):
-        key = request.headers.get("x-api-key")
-        if key != API_KEY:
-            return JSONResponse({"error": "Unauthorized"}, status_code=401)
-    return await call_next(request)
 
 # =========================
 # MCP SERVER
@@ -57,24 +42,51 @@ def generate_report(name: str) -> dict:
     }
 
 # =========================
-# MCP ENDPOINT
+# LIFESPAN (المهم للإصلاح)
 # =========================
 mcp_app = mcp.http_app()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with mcp_app.router.lifespan_context(app):
+        yield
+
+# =========================
+# FASTAPI APP
+# =========================
+app = FastAPI(title="BeamMCP SaaS", lifespan=lifespan)
+
+# =========================
+# API KEY MIDDLEWARE (مصحح)
+# =========================
+@app.middleware("http")
+async def check_api_key(request: Request, call_next):
+    path = request.url.path
+    # حماية /mcp فقط ما عدا health check
+    if path.startswith("/mcp") and path != "/mcp/health":
+        key = request.headers.get("x-api-key")
+        if key != API_KEY:
+            return JSONResponse({"error": "Unauthorized"}, status_code=401)
+    return await call_next(request)
+
+# =========================
+# MCP MOUNT
+# =========================
 app.mount("/mcp", mcp_app)
 
 # =========================
-# DASHBOARD (JSON)
+# DASHBOARD
 # =========================
 @app.get("/dashboard")
 async def dashboard():
     return {
         "name": "BeamMCP SaaS",
         "status": "running",
-        "tools": 3
+        "tools": ["search_domain", "analyze_text", "generate_report"]
     }
 
 # =========================
-# HOME PAGE (HTML FIX - IMPORTANT)
+# HOME PAGE
 # =========================
 @app.get("/", response_class=HTMLResponse)
 async def home():
@@ -102,17 +114,9 @@ async def home():
                 border-radius: 12px;
                 background: rgba(0,255,136,0.05);
             }
-            h1 {
-                color: #00ff88;
-                margin-bottom: 10px;
-            }
-            p {
-                color: #aaa;
-            }
-            a {
-                color: #00c2ff;
-                text-decoration: none;
-            }
+            h1 { color: #00ff88; margin-bottom: 10px; }
+            p { color: #aaa; }
+            a { color: #00c2ff; text-decoration: none; }
         </style>
     </head>
     <body>
@@ -126,13 +130,8 @@ async def home():
     """
 
 # =========================
-# START SERVER
+# START
 # =========================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=port
-    )
+    uvicorn.run(app, host="0.0.0.0", port=port)
